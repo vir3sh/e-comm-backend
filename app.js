@@ -19,6 +19,7 @@ app.use(cookieParser());
 const corsOptions = {
   origin: "http://localhost:5173", // Only allow this domain
   optionsSuccessStatus: 200, // Fixes issues with older browsers (like IE11)
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
@@ -30,7 +31,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/user", userRouter);
-app.use("/api/product", productRouter);
+app.use("/api/products", productRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/cart", cartRouter);
 

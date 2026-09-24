@@ -1,5 +1,6 @@
 import Product from "../models/product.js";
 import { v2 as cloudinary } from "cloudinary";
+import createSlug from "../utils/createSlug.js";
 
 export const addProduct = async (req, res) => {
   try {
@@ -17,6 +18,7 @@ export const addProduct = async (req, res) => {
     const image2 = req.files.image2 && req.files.image2[0];
     const image3 = req.files.image3 && req.files.image3[0];
     const image4 = req.files.image4 && req.files.image4[0];
+    const image5 = req.files.image5 && req.files.image5[0];
 
     const images = [image1, image2, image3, image4].filter(
       (item) => item !== undefined,
@@ -31,15 +33,17 @@ export const addProduct = async (req, res) => {
         return result.secure_url;
       }),
     );
+    const slug = createSlug(name);
 
     const productData = {
       name,
+      slug,
       description,
       category,
       price: Number(price),
       subCategory,
       bestseller: bestseller === "true" ? true : false,
-      sizes: JSON.parse(sizes),
+      sizes: sizes ? JSON.parse(sizes) : [],
       image: imagesUrl,
       date: Date.now(),
     };
@@ -89,7 +93,7 @@ export const deleteProducts = async (req, res) => {
 
 export const singleProduct = async (req, res) => {
   try {
-    const singleProduct = await Product.findById(req.params.id);
+    const singleProduct = await Product.findOne({ slug: req.params.id });
     if (!singleProduct) {
       return res.status(400).json({
         success: true,

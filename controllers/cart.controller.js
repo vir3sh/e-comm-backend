@@ -4,7 +4,8 @@ import User from "../models/user.js";
 // Add product to cart
 export const addToCart = async (req, res) => {
   try {
-    const { userId, itemId, size } = req.body;
+    const { itemId, size } = req.body;
+    const userId = req.user;
 
     // Validate required fields
     if (!userId || !itemId || !size) {
@@ -79,7 +80,8 @@ export const addToCart = async (req, res) => {
 // Update cart
 export const updateCart = async (req, res) => {
   try {
-    const { userId, itemId, size, quantity } = req.body;
+    const { itemId, size, quantity } = req.body;
+    const userId = req.user;
 
     // Validate required fields
     if (!userId || !itemId || !size || quantity === undefined) {
@@ -166,7 +168,7 @@ export const updateCart = async (req, res) => {
 // Get cart
 export const getCart = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user;
 
     // Validate userId
     if (!userId) {
@@ -205,6 +207,90 @@ export const getCart = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Unable to get cart",
+      error: error.message,
+    });
+  }
+};
+
+//delete cart
+export const removeFromCart = async (req, res) => {
+  try {
+    const { itemId, size } = req.body;
+    const userId = req.user;
+
+    // Validate required fields
+    if (!userId || !itemId || !size) {
+      return res.status(400).json({
+        success: false,
+        message: "itemId and size are required",
+      });
+    }
+
+    // Validate MongoDB IDs
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(itemId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid userId or itemId",
+      });
+    }
+
+    // Find user
+    const userData = await User.findById(userId);
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const cartData = userData.cartData || {};
+
+    // Check product
+    if (!cartData[itemId]) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found in cart",
+      });
+    }
+
+    // Check size
+    if (cartData[itemId][size] === undefined) {
+      return res.status(404).json({
+        success: false,
+        message: "Size not found in cart",
+      });
+    }
+
+    // Remove size
+    delete cartData[itemId][size];
+
+    // If no sizes are left, remove product
+    if (Object.keys(cartData[itemId]).length === 0) {
+      delete cartData[itemId];
+    }
+
+    // Save cart
+    await User.findByIdAndUpdate(
+      userId,
+      { cartData },
+      { returnDocument: "after" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Item removed from cart",
+      cartData,
+    });
+  } catch (error) {
+    console.error("Remove cart error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to remove item from cart",
       error: error.message,
     });
   }

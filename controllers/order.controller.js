@@ -8,7 +8,8 @@ const razorpayInstance = new Razorpay({
 });
 export const placeOrder = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;
+    const { items, amount, address } = req.body;
+    const userId = req.user._id.toString();
     const orderData = {
       userId,
       items,
@@ -34,7 +35,8 @@ export const placeOrder = async (req, res) => {
 
 export const placeOrderRazorpay = async (req, res) => {
   try {
-    const { userId, items, amount, address } = req.body;
+    const { items, amount, address } = req.body;
+    const userId = req.user._id.toString();
 
     const orderData = {
       userId,
@@ -73,7 +75,8 @@ export const placeOrderRazorpay = async (req, res) => {
 
 export const verifyRazorpay = async (req, res) => {
   try {
-    const { userId, razorpay_order_id } = req.body;
+    const { razorpay_order_id } = req.body;
+    const userId = req.user._id.toString();
 
     const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
     if (orderInfo.status === "paid") {
@@ -111,27 +114,30 @@ export const allOrders = async (req, res) => {
 
 export const userOrders = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const orders = await orderModel.findById({ userId });
-    if (!orders) {
-      res.statua(400).json({
+    const userId = req.user._id.toString();
+    const orders = await orderModel.find({ userId }).sort({ createdAt: -1 });
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({
         success: false,
-        message: "No order found",
+        message: "No orders found",
       });
     }
+
     res.json({
       success: true,
       orders,
     });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       success: false,
-      message: "could not fetch your orders",
+      message: "Could not fetch your orders",
       error,
     });
   }
 };
-
 export const orderStatus = async (req, res) => {
   try {
     const { orderId, status } = req.body;

@@ -19,6 +19,7 @@ productRouter.post(
     { name: "image2", maxCount: 1 },
     { name: "image3", maxCount: 1 },
     { name: "image4", maxCount: 1 },
+    { name: "image5", maxCount: 1 },
   ]),
   addProduct,
 );
