@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const corsOptions = {
-  origin: "http://localhost:5173", // Only allow this domain
+  origin: process.env.FRONTEND, // Only allow this domain
   optionsSuccessStatus: 200, // Fixes issues with older browsers (like IE11)
   credentials: true,
 };
