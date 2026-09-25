@@ -8,7 +8,7 @@ const authMiddleware = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Not authenticated",
+        message: "Login First",
       });
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
